@@ -46,6 +46,7 @@
  *
  */
 
+
 /*** Bibliotecas Include ***/
 
 #include <DHT_U.h>
@@ -55,6 +56,7 @@
 #include <SPI.h>               // Serial Peripheral Interface Bus
 #include <SD.h>                // Secure Digital (SD card format)
 #include <Wire.h>              // I2C library
+
 
 /*** Define Constantes ***/
 
@@ -69,6 +71,7 @@
 
 #define DEBUG 1
 
+
 /*** Inicializa Objetos e Variáveis ***/
 
 // DHT22 sensor
@@ -82,6 +85,9 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
 // ML8511 sensor
 ML8511 uvSensor;
+
+String dataString = "";
+
 
 /*** Configuração Inicial ***/
 
@@ -105,16 +111,17 @@ void setup(void) {
   SD.begin(CS);
 }
 
+
 /*** Função Principal ***/
 
 void loop(void) {
 
   String dataString = "";
 
-  read_DHT22(dataString);     // Lê Temperatura e Umidade
-  read_BMP180(dataString);    // Lê Temperatura e Pressão
-  read_ML8511(dataString);    // Lê Radiação Ultravioleta
-  read_HCSR04(dataString);    // Lê Distância
+  read_DHT22(dataString);     // Temperatura e Umidade
+  read_BMP180(dataString);    // Temperatura e Pressão
+  read_HCSR04(dataString);    // Distância
+  read_ML8511(dataString);    // Radiação Ultravioleta
 
   // Abre o arquivo no cartão de memória
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
@@ -135,9 +142,11 @@ void loop(void) {
   delay(5000);      // Frequencia das Leituras
 }
 
+
 /*** DHT22 Umidade e Temperatura ***/
 
-void read_DHT22(void) {
+void read_DHT22(String dataString) {
+
   float humidity = 0.0;
   float temperature = 0.0;
   sensors_event_t event;
@@ -145,29 +154,27 @@ void read_DHT22(void) {
   dht.humidity().getEvent(&event);
   humidity = event.relative_humidity;
   if (isnan(humidity)) {
-    Serial.println("Error:DHT22_H_Sensor");
+    dataString += "DHT22_H:Error,";
   }
   else {
-    Serial.print("DHT22_H:");
-    Serial.println(humidity);           // em %
-    dataString += String(humidity) + ",";
+    dataString += "DHT22_H:" + String(humidity) + ",";
   }
 
   dht.temperature().getEvent(&event);
   temperature = event.temperature;
   if (isnan(temperature)) {
-    Serial.println("Error:DHT22_T_Sensor");
+    dataString += "DHT22_T:Error,";
   }
   else {
-    Serial.print("DHT22_T:");
-    Serial.println(temperature);        // em ºC
-    dataString += String(temperature) + ",";
+    dataString += "DHT22_T:" + String(temperature) + ",";
   }
 }
 
+
 /*** BMP180 Temperatura e Pressão Barométrica ***/
 
-void read_BMP180(void) {
+void read_BMP180(String dataString) {
+
   float temperature = 0.0;
   float pressure = 0.0;
 
@@ -177,48 +184,50 @@ void read_BMP180(void) {
   bmp.getTemperature(&temperature);
 
   if (isnan(temperature)) {
-    Serial.println("Error:BMP180_T_Sensor");
+    dataString += "BMP180_T:Error,";
   }
   else {
-    Serial.print("BMP180_T:");
-    Serial.println(temperature);        // em Celsius
-    dataString += String(temperature) + ",";
+    dataString += "BMP180_T:" + String(temperature) + ",";
   }
 
   if (isnan(pressure)) {
-    Serial.println("Error:BMP180_P_Sensor");
+    dataString += "BMP180_P:Error,";
   }
   else {
-    Serial.print("BMP180_P:");
-    Serial.println(pressure);           // em hPa
-    dataString += String(pressure) + ",";
+    dataString += "BMP180_P:" + String(pressure) + ",";
   }
 }
+
+
+/*** HC-SR04 Sensor de Distância Ultrasónico ***/
 
 void read_HCSR04 (String dataString) {
-  unsigned int uS = sonar.ping();        // Emite um pulso e retorna tempo em microsegundos (uS)
-  float distance = uS / US_ROUNDTRIP_CM; // Converte tempo em distância (cm). Se distância maior do que MAX_DISTANCE retorna 0
+
+  unsigned int uS = sonar.ping();        // Emite um pulso e retorna tempo em
+                                         // microsegundos (uS)
+  float distance = uS / US_ROUNDTRIP_CM; // Converte tempo em distância (cm).
+                                         // Se distância maior do que MAX_DISTANCE retorna 0
 
   if (isnan(distance)) {
-    Serial.print("Error:HC-SR04_D_Sensor");
+    dataString += "HC-SR04_D:Error,";
   }
   else {
-    Serial.print("HC-SR04_D:");
-    Serial.println(distance);             // em Cm
-    dataString += String(distance) + ",";
+    dataString += "HC-SR04_D:" + String(distance) + ",";
   }
 }
+
+
+/*** ML8511 Sensor de Radiação Ultravioleta ***/
 
 void read_ML8511 (String dataString) {
+
   float uv = uvSensor.readSensor();
+
   if (isnan(uv)) {
-    Serial.println("Error:ML8511_UV_Sensor");
+    dataString += "ML8511_UV:Error,";
   }
   else {
-    Serial.print("ML8511_UV:");
-    Serial.println(uv);
     //uvSensor.debugSensor();
-    dataString += String(uv) + ",";
+    dataString += "ML8511_UV:" + String(uv) + ",";
   }
 }
-
