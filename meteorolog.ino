@@ -67,6 +67,8 @@
 
 #define CS 4             // Pino digital Módulo SD Card
 
+#define DEBUG 1
+
 /*** Inicializa Objetos e Variáveis ***/
 
 // DHT22 sensor
@@ -82,7 +84,9 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 ML8511 uvSensor;
 
 /*** Configuração Inicial ***/
+
 void setup(void) {
+
   // Comunicação Serial
   Serial.begin(115200);   // Baud rate (velocidade de comunicação)
   while(!Serial);
@@ -102,22 +106,27 @@ void setup(void) {
 }
 
 /*** Função Principal ***/
+
 void loop(void) {
+
   String dataString = "";
 
-  read_DHT22();     // Lê Temperatura e Umidade
-  read_BMP180();    // Lê Temperatura e Pressão
-  read_ML8511(dataString);    // Lê UV
+  read_DHT22(dataString);     // Lê Temperatura e Umidade
+  read_BMP180(dataString);    // Lê Temperatura e Pressão
+  read_ML8511(dataString);    // Lê Radiação Ultravioleta
   read_HCSR04(dataString);    // Lê Distância
 
+  // Abre o arquivo no cartão de memória
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
 
   if (dataFile) {
     dataFile.println(dataString);
-    Serial.println(dataString);
+    if (DEBUG) {
+      Serial.println(dataString);
+    }
   }
   else {
-    Serial.println("Error opening datalog.txt");
+    Serial.println("Error:opening_datalog.txt");
   }
 
   Serial.println("--> END <--");
@@ -140,6 +149,7 @@ void read_DHT22(void) {
   else {
     Serial.print("DHT22_H:");
     Serial.println(humidity);           // em %
+    dataString += String(humidity) + ",";
   }
 
   dht.temperature().getEvent(&event);
@@ -150,6 +160,7 @@ void read_DHT22(void) {
   else {
     Serial.print("DHT22_T:");
     Serial.println(temperature);        // em ºC
+    dataString += String(temperature) + ",";
   }
 }
 
@@ -170,6 +181,7 @@ void read_BMP180(void) {
   else {
     Serial.print("BMP180_T:");
     Serial.println(temperature);        // em Celsius
+    dataString += String(temperature) + ",";
   }
 
   if (isnan(pressure)) {
@@ -178,19 +190,20 @@ void read_BMP180(void) {
   else {
     Serial.print("BMP180_P:");
     Serial.println(pressure);           // em hPa
+    dataString += String(pressure) + ",";
   }
 }
 
 void read_HCSR04 (String dataString) {
-  unsigned int uS = sonar.ping(); // Send ping, get ping time in microseconds (uS).
-  float distance = uS / US_ROUNDTRIP_CM; // Convert ping time to distance in cm and print result (0 = outside set distance range)
+  unsigned int uS = sonar.ping();        // Emite um pulso e retorna tempo em microsegundos (uS)
+  float distance = uS / US_ROUNDTRIP_CM; // Converte tempo em distância (cm). Se distância maior do que MAX_DISTANCE retorna 0
 
   if (isnan(distance)) {
     Serial.print("Error:HC-SR04_D_Sensor");
   }
   else {
     Serial.print("HC-SR04_D:");
-    Serial.println(distance);             // em Cm 
+    Serial.println(distance);             // em Cm
     dataString += String(distance) + ",";
   }
 }
