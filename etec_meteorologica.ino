@@ -86,6 +86,8 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 // ML8511 sensor
 ML8511 uvSensor;
 
+// String para concatenar informação dos sensores e enviar pro Serial ou
+// salvar no Data Logger
 String dataString = "";
 
 
@@ -116,12 +118,12 @@ void setup(void) {
 
 void loop(void) {
 
-  String dataString = "";
+  dataString = "";
 
-  read_DHT22(dataString);     // Temperatura e Umidade
-  read_BMP180(dataString);    // Temperatura e Pressão
-  read_HCSR04(dataString);    // Distância
-  read_ML8511(dataString);    // Radiação Ultravioleta
+  read_DHT22();     // Temperatura e Umidade
+  read_BMP180();    // Temperatura e Pressão
+  read_HCSR04();    // Distância
+  read_ML8511();    // Radiação Ultravioleta
 
   // Abre o arquivo no cartão de memória
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
@@ -145,7 +147,7 @@ void loop(void) {
 
 /*** DHT22 Umidade e Temperatura ***/
 
-void read_DHT22(String dataString) {
+void read_DHT22 (void) {
 
   float humidity = 0.0;
   float temperature = 0.0;
@@ -173,7 +175,7 @@ void read_DHT22(String dataString) {
 
 /*** BMP180 Temperatura e Pressão Barométrica ***/
 
-void read_BMP180(String dataString) {
+void read_BMP180 (void) {
 
   float temperature = 0.0;
   float pressure = 0.0;
@@ -201,7 +203,7 @@ void read_BMP180(String dataString) {
 
 /*** HC-SR04 Sensor de Distância Ultrasónico ***/
 
-void read_HCSR04 (String dataString) {
+void read_HCSR04 (void) {
 
   unsigned int uS = sonar.ping();        // Emite um pulso e retorna tempo em
                                          // microsegundos (uS)
@@ -219,7 +221,7 @@ void read_HCSR04 (String dataString) {
 
 /*** ML8511 Sensor de Radiação Ultravioleta ***/
 
-void read_ML8511 (String dataString) {
+void read_ML8511 (void) {
 
   float uv = uvSensor.readSensor();
 
