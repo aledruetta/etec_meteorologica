@@ -121,6 +121,7 @@ void loop(void) {
 
   if (dataFile) {
     dataFile.println(dataString);
+    dataFile.close();
     if (DEBUG) {
       Serial.println(dataString);
     }
