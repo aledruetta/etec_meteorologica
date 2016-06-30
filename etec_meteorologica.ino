@@ -1,4 +1,8 @@
-/*** MeteoroLógica ***
+/*********************************************
+ **********                         **********
+ **********      MeteoroLógica      **********
+ **********                         **********
+ *********************************************
  *
  * ## Deek-Robot Data Logging Shield V1.0
  *    SD-Card Reader (Arduino SD-Library compatible, chipSelect=10)
@@ -69,7 +73,7 @@
 
 #define CS 4             // Pino digital Módulo SD Card
 
-#define DEBUG 1
+#define DEBUG 1          // 1 modo debug, 0 não debug
 
 
 /*** Inicializa Objetos e Variáveis ***/
@@ -125,21 +129,18 @@ void loop(void) {
   read_HCSR04();    // Distância
   read_ML8511();    // Radiação Ultravioleta
 
+  Serial.println(dataString);
+
   // Abre o arquivo no cartão de memória
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
 
   if (dataFile) {
     dataFile.println(dataString);
     dataFile.close();
-    if (DEBUG) {
-      Serial.println(dataString);
-    }
   }
   else {
     Serial.println("Error:opening_datalog.txt");
   }
-
-  Serial.println("--> END <--");
 
   delay(5000);      // Frequencia das Leituras
 }
